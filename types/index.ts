@@ -9,15 +9,17 @@ export interface User {
   isActive: boolean;
   lastLoginAt?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export type SafetyStatus = "safe" | "damaged" | "checking" | "evacuated" | "unknown";
 export type BusinessStatus = "open" | "partially_open" | "closed" | "preparing" | "checking" | "unknown";
-export type DamageStatus = "停電" | "断水" | "ガス停止" | "通信障害" | "建物損傷" | "設備破損" | "浸水" | "火災" | "人的被害" | "その他";
+export type DamageItemName = "停電" | "断水" | "ガス停止" | "通信障害" | "建物損傷" | "設備破損" | "浸水" | "火災" | "人的被害" | "その他";
 export type SupportType = "human_support" | "goods_support" | "cleanup" | "facility_check" | "building_check" | "reopen_support" | "other";
 export type Urgency = "high" | "middle" | "low";
 export type SupportStatus = "open" | "in_progress" | "closed";
 export type DisasterEventStatus = "active" | "closed" | "training";
+export type NotificationTargetType = "all" | "area" | "unreported" | "selected";
 
 export interface Store {
   id: number;
@@ -32,6 +34,7 @@ export interface Store {
   email: string;
   note?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface EmergencyContact {
@@ -42,6 +45,8 @@ export interface EmergencyContact {
   phone: string;
   email?: string;
   priority: number;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface DisasterEvent {
@@ -54,6 +59,25 @@ export interface DisasterEvent {
   status: DisasterEventStatus;
   memo?: string;
   createdBy: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface DamageItem {
+  id: number;
+  name: DamageItemName;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ReportDamageItem {
+  id: number;
+  reportId: number;
+  damageItemId: number;
+  damageItemName: DamageItemName;
+  detail?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Report {
@@ -63,14 +87,15 @@ export interface Report {
   safetyStatus: SafetyStatus;
   businessStatus: BusinessStatus;
   hasDamage: boolean;
-  damageItems: DamageStatus[];
-  damageDetail?: string;
+  damageItems: ReportDamageItem[];
   hasSupportRequest: boolean;
   memo?: string;
   isProxy: boolean;
   proxyMethod?: string;
   reportedBy: number;
   reportedAt: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface SupportRequest {
@@ -83,6 +108,62 @@ export interface SupportRequest {
   status: SupportStatus;
   assignedTo?: number;
   createdBy: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Photo {
+  id: number;
+  reportId?: number;
+  storeId: number;
+  filePath: string;
+  caption?: string;
+  uploadedBy: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Notification {
+  id: number;
+  title: string;
+  body: string;
+  targetType: NotificationTargetType;
+  sentBy: number;
+  sentAt: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface NotificationTarget {
+  id: number;
+  notificationId: number;
+  storeId: number;
+  isRead: boolean;
+  readAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface EmergencySupply {
+  id: number;
+  name: string;
+  storagePlace: string;
+  quantity: number;
+  unit: string;
+  managerName: string;
+  expirationDate?: string;
+  note?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface OperationLog {
+  id: number;
+  userId: number;
+  action: string;
+  targetTable: string;
+  targetId?: number;
+  detail?: string;
   createdAt: string;
 }
 

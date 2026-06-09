@@ -1,6 +1,6 @@
 "use client";
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useState, useTransition } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import StatusBadge, { safetyBadgeColor, businessBadgeColor } from "@/components/StatusBadge";
@@ -12,13 +12,31 @@ import {
   supportTypeLabels,
   urgencyLabels,
 } from "@/lib/mockData";
+import { submitReport } from "@/app/store/actions";
 
 function ConfirmPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const fromTop = searchParams.get("from") === "top";
   const backHref = fromTop ? "/store" : "/store/support";
-  const { draft, hydrated } = useReportStore();
+  const { draft, hydrated, clearDraft } = useReportStore();
   const store = mockStores[0];
+
+  const [isPending, startTransition] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleSubmit = () => {
+    setSubmitError(null);
+    startTransition(async () => {
+      const result = await submitReport(draft);
+      if (result.ok) {
+        clearDraft();
+        router.push("/store/complete");
+      } else {
+        setSubmitError(result.error ?? "送信に失敗しました");
+      }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -143,12 +161,25 @@ function ConfirmPageContent() {
           </Link>
         </div>
 
-        <Link
-          href="/store/complete"
-          className="block w-full bg-red-600 text-white font-bold py-4 rounded-xl text-center text-base hover:bg-red-700 transition-colors"
+        {/* エラーメッセージ */}
+        {submitError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
+            <p className="font-bold mb-1">送信に失敗しました</p>
+            <p>{submitError}</p>
+          </div>
+        )}
+
+        <button
+          onClick={handleSubmit}
+          disabled={isPending}
+          className={`w-full font-bold py-4 rounded-xl text-base transition-colors ${
+            isPending
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-red-600 text-white hover:bg-red-700"
+          }`}
         >
-          📤 この内容で送信する
-        </Link>
+          {isPending ? "送信中..." : "📤 この内容で送信する"}
+        </button>
 
         {/* ホームに戻る（フル報告ルートのみ） */}
         {!fromTop && (

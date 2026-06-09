@@ -1,4 +1,17 @@
-import type { Store, Report, SupportRequest, DisasterEvent, DashboardStats, EmergencyContact } from "@/types";
+import type { Store, Report, SupportRequest, DisasterEvent, DashboardStats, EmergencyContact, DamageItem, ReportDamageItem } from "@/types";
+
+export const mockDamageItems: DamageItem[] = [
+  { id: 1, name: "停電", createdAt: "2024-01-01T00:00:00" },
+  { id: 2, name: "断水", createdAt: "2024-01-01T00:00:00" },
+  { id: 3, name: "ガス停止", createdAt: "2024-01-01T00:00:00" },
+  { id: 4, name: "通信障害", createdAt: "2024-01-01T00:00:00" },
+  { id: 5, name: "建物損傷", createdAt: "2024-01-01T00:00:00" },
+  { id: 6, name: "設備破損", createdAt: "2024-01-01T00:00:00" },
+  { id: 7, name: "浸水", createdAt: "2024-01-01T00:00:00" },
+  { id: 8, name: "火災", createdAt: "2024-01-01T00:00:00" },
+  { id: 9, name: "人的被害", createdAt: "2024-01-01T00:00:00" },
+  { id: 10, name: "その他", createdAt: "2024-01-01T00:00:00" },
+];
 
 export const mockStores: Store[] = [
   { id: 1, name: "たこ焼き本舗 なんば店", category: "飲食店", address: "大阪府大阪市中央区難波3-1-1", latitude: 34.6687, longitude: 135.5013, areaName: "A エリア", managerName: "山田 太郎", phone: "06-1234-5678", email: "takoyaki@namba.jp", createdAt: "2024-01-10" },
@@ -16,11 +29,11 @@ export const mockStores: Store[] = [
 ];
 
 export const mockEmergencyContacts: EmergencyContact[] = [
-  { id: 1, storeId: 1, contactName: "山田 次郎", relation: "家族", phone: "090-1234-5678", priority: 1 },
-  { id: 2, storeId: 2, contactName: "鈴木 一郎", relation: "家族", phone: "090-2345-6789", priority: 1 },
-  { id: 3, storeId: 3, contactName: "佐藤 花子", relation: "配偶者", phone: "090-3456-7890", priority: 1 },
-  { id: 4, storeId: 4, contactName: "田中 太郎", relation: "家族", phone: "090-4567-8901", priority: 1 },
-  { id: 5, storeId: 5, contactName: "中村 恵", relation: "配偶者", phone: "090-5678-9012", priority: 1 },
+  { id: 1, storeId: 1, contactName: "山田 次郎", relation: "家族", phone: "090-1234-5678", priority: 1, createdAt: "2024-01-10" },
+  { id: 2, storeId: 2, contactName: "鈴木 一郎", relation: "家族", phone: "090-2345-6789", priority: 1, createdAt: "2024-01-12" },
+  { id: 3, storeId: 3, contactName: "佐藤 花子", relation: "配偶者", phone: "090-3456-7890", priority: 1, createdAt: "2024-01-15" },
+  { id: 4, storeId: 4, contactName: "田中 太郎", relation: "家族", phone: "090-4567-8901", priority: 1, createdAt: "2024-01-18" },
+  { id: 5, storeId: 5, contactName: "中村 恵", relation: "配偶者", phone: "090-5678-9012", priority: 1, createdAt: "2024-01-20" },
 ];
 
 export const mockDisasterEvent: DisasterEvent = {
@@ -32,17 +45,81 @@ export const mockDisasterEvent: DisasterEvent = {
   status: "active",
   memo: "震度6強を想定した訓練モードです",
   createdBy: 100,
+  createdAt: "2026-06-09T08:55:00",
 };
 
+const rdi = (id: number, reportId: number, damageItemId: number, damageItemName: ReportDamageItem["damageItemName"], reportedAt: string, detail?: string): ReportDamageItem => ({
+  id, reportId, damageItemId, damageItemName, detail, createdAt: reportedAt,
+});
+
 export const mockReports: Report[] = [
-  { id: 1, disasterEventId: 1, storeId: 1, safetyStatus: "safe", businessStatus: "open", hasDamage: false, damageItems: [], hasSupportRequest: false, memo: "軽微なひび割れあり。営業継続中", isProxy: false, reportedBy: 1, reportedAt: "2026-06-09T09:15:00" },
-  { id: 2, disasterEventId: 1, storeId: 2, safetyStatus: "damaged", businessStatus: "closed", hasDamage: true, damageItems: ["建物損傷", "設備破損"], damageDetail: "壁に亀裂。什器が倒れた", hasSupportRequest: true, isProxy: false, reportedBy: 2, reportedAt: "2026-06-09T09:20:00" },
-  { id: 3, disasterEventId: 1, storeId: 3, safetyStatus: "safe", businessStatus: "partially_open", hasDamage: true, damageItems: ["停電"], damageDetail: "停電中だが自家発電で対応", hasSupportRequest: false, isProxy: false, reportedBy: 3, reportedAt: "2026-06-09T09:25:00" },
-  { id: 4, disasterEventId: 1, storeId: 4, safetyStatus: "evacuated", businessStatus: "closed", hasDamage: true, damageItems: ["浸水", "停電"], hasSupportRequest: true, isProxy: false, reportedBy: 4, reportedAt: "2026-06-09T09:30:00" },
-  { id: 5, disasterEventId: 1, storeId: 5, safetyStatus: "safe", businessStatus: "open", hasDamage: false, damageItems: [], hasSupportRequest: false, isProxy: false, reportedBy: 5, reportedAt: "2026-06-09T09:35:00" },
-  { id: 6, disasterEventId: 1, storeId: 6, safetyStatus: "checking", businessStatus: "checking", hasDamage: true, damageItems: ["断水", "建物損傷"], hasSupportRequest: true, isProxy: true, proxyMethod: "電話確認", reportedBy: 100, reportedAt: "2026-06-09T10:00:00" },
-  { id: 7, disasterEventId: 1, storeId: 9, safetyStatus: "safe", businessStatus: "preparing", hasDamage: false, damageItems: [], hasSupportRequest: false, memo: "本日の営業は停止。明日再開予定", isProxy: false, reportedBy: 9, reportedAt: "2026-06-09T09:50:00" },
-  { id: 8, disasterEventId: 1, storeId: 10, safetyStatus: "safe", businessStatus: "open", hasDamage: false, damageItems: [], hasSupportRequest: false, isProxy: false, reportedBy: 10, reportedAt: "2026-06-09T09:10:00" },
+  {
+    id: 1, disasterEventId: 1, storeId: 1,
+    safetyStatus: "safe", businessStatus: "open",
+    hasDamage: false, damageItems: [],
+    hasSupportRequest: false, memo: "軽微なひび割れあり。営業継続中",
+    isProxy: false, reportedBy: 1, reportedAt: "2026-06-09T09:15:00", createdAt: "2026-06-09T09:15:00",
+  },
+  {
+    id: 2, disasterEventId: 1, storeId: 2,
+    safetyStatus: "damaged", businessStatus: "closed",
+    hasDamage: true, damageItems: [
+      rdi(1, 2, 5, "建物損傷", "2026-06-09T09:20:00", "壁に亀裂。什器が倒れた"),
+      rdi(2, 2, 6, "設備破損", "2026-06-09T09:20:00"),
+    ],
+    hasSupportRequest: true,
+    isProxy: false, reportedBy: 2, reportedAt: "2026-06-09T09:20:00", createdAt: "2026-06-09T09:20:00",
+  },
+  {
+    id: 3, disasterEventId: 1, storeId: 3,
+    safetyStatus: "safe", businessStatus: "partially_open",
+    hasDamage: true, damageItems: [
+      rdi(3, 3, 1, "停電", "2026-06-09T09:25:00", "停電中だが自家発電で対応"),
+    ],
+    hasSupportRequest: false,
+    isProxy: false, reportedBy: 3, reportedAt: "2026-06-09T09:25:00", createdAt: "2026-06-09T09:25:00",
+  },
+  {
+    id: 4, disasterEventId: 1, storeId: 4,
+    safetyStatus: "evacuated", businessStatus: "closed",
+    hasDamage: true, damageItems: [
+      rdi(4, 4, 7, "浸水", "2026-06-09T09:30:00"),
+      rdi(5, 4, 1, "停電", "2026-06-09T09:30:00"),
+    ],
+    hasSupportRequest: true,
+    isProxy: false, reportedBy: 4, reportedAt: "2026-06-09T09:30:00", createdAt: "2026-06-09T09:30:00",
+  },
+  {
+    id: 5, disasterEventId: 1, storeId: 5,
+    safetyStatus: "safe", businessStatus: "open",
+    hasDamage: false, damageItems: [],
+    hasSupportRequest: false,
+    isProxy: false, reportedBy: 5, reportedAt: "2026-06-09T09:35:00", createdAt: "2026-06-09T09:35:00",
+  },
+  {
+    id: 6, disasterEventId: 1, storeId: 6,
+    safetyStatus: "checking", businessStatus: "checking",
+    hasDamage: true, damageItems: [
+      rdi(6, 6, 2, "断水", "2026-06-09T10:00:00"),
+      rdi(7, 6, 5, "建物損傷", "2026-06-09T10:00:00"),
+    ],
+    hasSupportRequest: true,
+    isProxy: true, proxyMethod: "電話確認", reportedBy: 100, reportedAt: "2026-06-09T10:00:00", createdAt: "2026-06-09T10:00:00",
+  },
+  {
+    id: 7, disasterEventId: 1, storeId: 9,
+    safetyStatus: "safe", businessStatus: "preparing",
+    hasDamage: false, damageItems: [],
+    hasSupportRequest: false, memo: "本日の営業は停止。明日再開予定",
+    isProxy: false, reportedBy: 9, reportedAt: "2026-06-09T09:50:00", createdAt: "2026-06-09T09:50:00",
+  },
+  {
+    id: 8, disasterEventId: 1, storeId: 10,
+    safetyStatus: "safe", businessStatus: "open",
+    hasDamage: false, damageItems: [],
+    hasSupportRequest: false,
+    isProxy: false, reportedBy: 10, reportedAt: "2026-06-09T09:10:00", createdAt: "2026-06-09T09:10:00",
+  },
 ];
 
 export const mockSupportRequests: SupportRequest[] = [

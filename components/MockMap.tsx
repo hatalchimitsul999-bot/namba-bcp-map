@@ -160,7 +160,9 @@ export default function MockMap({ stores, reports, supportRequests, filterStatus
           {selectedReport?.damageItems && selectedReport.damageItems.length > 0 && (
             <div className="mt-2 pt-2 border-t border-gray-100">
               <span className="text-xs text-gray-500">被害項目: </span>
-              <span className="text-xs text-red-700 font-medium">{selectedReport.damageItems.join("、")}</span>
+              <span className="text-xs text-red-700 font-medium">
+                {selectedReport.damageItems.map((d) => d.damageItemName).join("、")}
+              </span>
             </div>
           )}
         </div>

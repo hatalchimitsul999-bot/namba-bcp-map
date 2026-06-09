@@ -56,6 +56,15 @@ export function useReportStore() {
     });
   };
 
+  const clearDraft = () => {
+    setDraft(emptyDraft);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore storage errors
+    }
+  };
+
   // hasStarted: safety status has been selected (minimum for individual update menus)
   const hasStarted = hydrated && draft.safetyStatus !== "";
 
@@ -66,5 +75,5 @@ export function useReportStore() {
       draft.businessStatus !== "" ||
       draft.needsSupport !== "");
 
-  return { draft, updateDraft, hydrated, hasStarted, hasSavedData };
+  return { draft, updateDraft, clearDraft, hydrated, hasStarted, hasSavedData };
 }
