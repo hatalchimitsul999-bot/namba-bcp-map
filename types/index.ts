@@ -1,5 +1,19 @@
 export type UserRole = "store_user" | "admin" | "external" | "system_admin";
 
+export type ProfileRole = "admin" | "store" | "external";
+
+export interface Profile {
+  id: number;
+  authUserId?: string;
+  loginId: string;
+  email: string;
+  role: ProfileRole;
+  storeId?: number;
+  name: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface User {
   id: number;
   name: string;
@@ -19,7 +33,8 @@ export type SupportType = "human_support" | "goods_support" | "cleanup" | "facil
 export type Urgency = "high" | "middle" | "low";
 export type SupportStatus = "open" | "in_progress" | "closed";
 export type DisasterEventStatus = "active" | "closed" | "training";
-export type NotificationTargetType = "all" | "area" | "unreported" | "selected";
+export type NotificationTargetType = "all" | "area" | "unreported" | "support_requested";
+export type NotificationStatus = "draft" | "sent";
 
 export interface Store {
   id: number;
@@ -125,11 +140,12 @@ export interface Photo {
 
 export interface Notification {
   id: number;
+  disasterEventId?: number;
   title: string;
   body: string;
   targetType: NotificationTargetType;
-  sentBy: number;
-  sentAt: string;
+  status: NotificationStatus;
+  createdBy?: number;
   createdAt: string;
   updatedAt?: string;
 }

@@ -6,19 +6,24 @@ import StatusBadge, {
   supportStatusBadgeColor,
   urgencyBadgeColor,
 } from "@/components/StatusBadge";
-import { safetyStatusLabels, businessStatusLabels, supportTypeLabels, urgencyLabels, supportStatusLabels, mockEmergencyContacts } from "@/lib/mockData";
+import { safetyStatusLabels, businessStatusLabels, supportTypeLabels, urgencyLabels, supportStatusLabels } from "@/lib/labels";
 import { fetchStoreById } from "@/lib/db/stores";
 import { fetchActiveDisasterEvent } from "@/lib/db/disasterEvents";
 import { fetchReportByStoreAndEvent } from "@/lib/db/reports";
 import { fetchSupportRequestsByStoreAndEvent } from "@/lib/db/supportRequests";
+import { fetchEmergencyContactsByStoreId } from "@/lib/db/emergencyContacts";
+import EmergencyContactsSection from "./EmergencyContactsSection";
+
+export const dynamic = "force-dynamic";
 
 export default async function StoreDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const storeId = parseInt(id);
 
-  const [storeResult, eventResult] = await Promise.all([
+  const [storeResult, eventResult, contactsResult] = await Promise.all([
     fetchStoreById(storeId),
     fetchActiveDisasterEvent(),
+    fetchEmergencyContactsByStoreId(storeId),
   ]);
 
   // 店舗が見つからない場合
@@ -42,6 +47,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
 
   const store = storeResult.data;
   const event = eventResult.data;
+  const contacts = contactsResult.data ?? [];
 
   // イベントがある場合のみ報告を取得
   const reportResult = event
@@ -54,8 +60,6 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
     ? await fetchSupportRequestsByStoreAndEvent(storeId, event.id)
     : { data: [], error: null };
 
-  // 緊急連絡先は次フェーズまでモックデータを使用
-  const contacts = mockEmergencyContacts.filter((c) => c.storeId === store.id);
   const supportReqs = supportResult.data ?? [];
 
   return (
@@ -84,21 +88,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
           </div>
         </div>
 
-        {/* 緊急連絡先（次フェーズまでモック） */}
-        {contacts.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <h2 className="font-bold text-gray-700 text-sm border-b border-gray-100 pb-2 mb-3">緊急連絡先</h2>
-            {contacts.map((c) => (
-              <div key={c.id} className="text-sm flex justify-between items-center">
-                <div>
-                  <span className="font-medium text-gray-900">{c.contactName}</span>
-                  <span className="text-gray-500 ml-2">({c.relation})</span>
-                </div>
-                <span className="text-blue-600">{c.phone}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <EmergencyContactsSection contacts={contacts} storeId={storeId} />
 
         {/* 報告状況 */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">

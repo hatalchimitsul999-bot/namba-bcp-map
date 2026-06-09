@@ -1,6 +1,6 @@
 import AppHeader from "@/components/AppHeader";
 import StatusBadge, { supportStatusBadgeColor, urgencyBadgeColor } from "@/components/StatusBadge";
-import { supportTypeLabels, urgencyLabels, supportStatusLabels } from "@/lib/mockData";
+import { supportTypeLabels, urgencyLabels, supportStatusLabels } from "@/lib/labels";
 import { fetchActiveDisasterEvent } from "@/lib/db/disasterEvents";
 import { fetchSupportRequestsByEventId } from "@/lib/db/supportRequests";
 import { fetchStores } from "@/lib/db/stores";

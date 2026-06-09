@@ -1,18 +1,21 @@
 "use client";
-import { Suspense, useState, useTransition } from "react";
+
+import { Suspense, useState, useEffect, useTransition } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import StatusBadge, { safetyBadgeColor, businessBadgeColor } from "@/components/StatusBadge";
 import { useReportStore } from "@/lib/useReportStore";
-import { mockStores } from "@/lib/mockData";
+import { fetchStoreById } from "@/lib/db/stores";
 import {
   safetyStatusLabels,
   businessStatusLabels,
   supportTypeLabels,
   urgencyLabels,
-} from "@/lib/mockData";
+} from "@/lib/labels";
 import { submitReport } from "@/app/store/actions";
+import { useProfile } from "@/lib/auth/ProfileContext";
+import type { Store } from "@/types";
 
 function ConfirmPageContent() {
   const router = useRouter();
@@ -20,23 +23,42 @@ function ConfirmPageContent() {
   const fromTop = searchParams.get("from") === "top";
   const backHref = fromTop ? "/store" : "/store/support";
   const { draft, hydrated, clearDraft } = useReportStore();
-  const store = mockStores[0];
+  const profile = useProfile();
 
   const [isPending, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [store, setStore] = useState<Store | null>(null);
+
+  const storeId = profile?.storeId ?? 0;
+
+  useEffect(() => {
+    if (storeId > 0) {
+      fetchStoreById(storeId).then(({ data }) => {
+        if (data) setStore(data);
+      });
+    }
+  }, [storeId]);
 
   const handleSubmit = () => {
     setSubmitError(null);
     startTransition(async () => {
-      const result = await submitReport(draft);
+      const result = await submitReport(draft, storeId);
       if (result.ok) {
+        const params = new URLSearchParams({
+          safety: draft.safetyStatus || "unknown",
+          business: draft.businessStatus || "unknown",
+          support: draft.needsSupport === "true" ? "true" : "false",
+          supportType: draft.supportType || "",
+        });
         clearDraft();
-        router.push("/store/complete");
+        router.push(`/store/complete?${params.toString()}`);
       } else {
         setSubmitError(result.error ?? "送信に失敗しました");
       }
     });
   };
+
+  const storeName = store?.name ?? (storeId > 0 ? "読み込み中..." : "店舗未選択");
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -66,7 +88,7 @@ function ConfirmPageContent() {
         {/* 確認カード */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
-            <h2 className="font-bold text-gray-900 text-sm">{store.name}</h2>
+            <h2 className="font-bold text-gray-900 text-sm">{storeName}</h2>
           </div>
 
           <div className="divide-y divide-gray-100">
@@ -171,9 +193,9 @@ function ConfirmPageContent() {
 
         <button
           onClick={handleSubmit}
-          disabled={isPending}
+          disabled={isPending || storeId === 0}
           className={`w-full font-bold py-4 rounded-xl text-base transition-colors ${
-            isPending
+            isPending || storeId === 0
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
               : "bg-red-600 text-white hover:bg-red-700"
           }`}

@@ -4,14 +4,18 @@ import { revalidatePath } from "next/cache";
 import { fetchActiveDisasterEvent } from "@/lib/db/disasterEvents";
 import { upsertReport } from "@/lib/db/reports";
 import { upsertSupportRequest } from "@/lib/db/supportRequests";
+import { replaceDamageItems } from "@/lib/db/reportDamageItems";
 import type { ReportDraft } from "@/lib/useReportStore";
-import type { SafetyStatus, BusinessStatus, SupportType, Urgency } from "@/types";
-
-const MOCK_STORE_ID = 1;
+import type { SafetyStatus, BusinessStatus, SupportType, Urgency, DamageItemName } from "@/types";
 
 export async function submitReport(
   draft: ReportDraft,
+  storeId: number,
 ): Promise<{ ok: boolean; error?: string }> {
+  if (!storeId || storeId <= 0) {
+    return { ok: false, error: "店舗が選択されていません。ログイン画面から店舗を選択してください。" };
+  }
+
   const { data: event, error: eventError } = await fetchActiveDisasterEvent();
   if (eventError) return { ok: false, error: eventError };
   if (!event) {
@@ -27,9 +31,9 @@ export async function submitReport(
   const memoParts = [draft.damageDetail, draft.safetyMemo, draft.businessMemo].filter(Boolean);
   const memo = memoParts.length > 0 ? memoParts.join(" / ") : undefined;
 
-  const { error: reportError } = await upsertReport({
+  const { data: reportId, error: reportError } = await upsertReport({
     disasterEventId: event.id,
-    storeId: MOCK_STORE_ID,
+    storeId,
     safetyStatus: (draft.safetyStatus || "unknown") as SafetyStatus,
     businessStatus: (draft.businessStatus || "unknown") as BusinessStatus,
     hasDamage,
@@ -41,10 +45,19 @@ export async function submitReport(
 
   if (reportError) return { ok: false, error: reportError };
 
+  // 被害項目の保存（洗い替え）
+  if (reportId !== null) {
+    const { error: damageError } = await replaceDamageItems(
+      reportId,
+      draft.damageItems as DamageItemName[],
+    );
+    if (damageError) return { ok: false, error: damageError };
+  }
+
   if (hasSupportRequest && draft.supportType) {
     const { error: supportError } = await upsertSupportRequest({
       disasterEventId: event.id,
-      storeId: MOCK_STORE_ID,
+      storeId,
       supportType: draft.supportType as SupportType,
       urgency: (draft.supportUrgency || "middle") as Urgency,
       detail: draft.supportDetail || undefined,

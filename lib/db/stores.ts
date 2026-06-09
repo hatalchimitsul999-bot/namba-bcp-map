@@ -63,6 +63,50 @@ function mapStore(row: any): Store {
   };
 }
 
+export type CreateStoreInput = {
+  name: string;
+  category: string;
+  areaName: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  managerName: string;
+  phone: string;
+  email: string;
+  note?: string;
+};
+
+export async function createStore(
+  input: CreateStoreInput,
+): Promise<MaybeResult<Store>> {
+  if (!supabase) {
+    return { data: null, error: "Supabase クライアントが初期化されていません" };
+  }
+  try {
+    const { data, error } = await supabase
+      .from("stores")
+      .insert({
+        name: input.name,
+        category: input.category,
+        area_name: input.areaName,
+        address: input.address,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        manager_name: input.managerName,
+        phone: input.phone,
+        email: input.email,
+        note: input.note ?? null,
+      })
+      .select()
+      .single();
+
+    if (error) return { data: null, error: error.message };
+    return { data: mapStore(data), error: null };
+  } catch (err) {
+    return { data: null, error: err instanceof Error ? err.message : "不明なエラー" };
+  }
+}
+
 export async function fetchStoreById(id: number): Promise<MaybeResult<Store>> {
   if (!supabase) {
     return { data: null, error: "Supabase クライアントが初期化されていません" };

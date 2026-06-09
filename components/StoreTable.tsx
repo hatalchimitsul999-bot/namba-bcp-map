@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { Store, Report } from "@/types";
 import StatusBadge, { safetyBadgeColor, businessBadgeColor } from "./StatusBadge";
-import { safetyStatusLabels, businessStatusLabels, getReportByStoreId } from "@/lib/mockData";
+import { safetyStatusLabels, businessStatusLabels } from "@/lib/labels";
 
 interface StoreTableProps {
   stores: Store[];
+  reports?: Report[];
   showActions?: boolean;
   actionLabel?: string;
   actionHref?: (storeId: number) => string;
@@ -14,6 +15,7 @@ interface StoreTableProps {
 
 export default function StoreTable({
   stores,
+  reports = [],
   showActions = true,
   actionLabel = "詳細",
   actionHref,
@@ -36,7 +38,7 @@ export default function StoreTable({
         </thead>
         <tbody>
           {stores.map((store) => {
-            const report = getReportByStoreId(store.id);
+            const report = reports.find((r) => r.storeId === store.id);
             return (
               <tr key={store.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="px-3 py-2 font-medium text-gray-800 whitespace-nowrap">{store.name}</td>

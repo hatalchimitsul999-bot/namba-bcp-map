@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import type { Store, Report, SupportRequest } from "@/types";
-import { safetyStatusLabels, businessStatusLabels } from "@/lib/mockData";
+import { safetyStatusLabels, businessStatusLabels } from "@/lib/labels";
 
 interface MockMapProps {
   stores: Store[];

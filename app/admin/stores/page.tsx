@@ -1,13 +1,27 @@
+import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import StoreTable from "@/components/StoreTable";
 import { fetchStores } from "@/lib/db/stores";
+import { fetchActiveDisasterEvent } from "@/lib/db/disasterEvents";
+import { fetchReportsByEventId } from "@/lib/db/reports";
 
 export const dynamic = "force-dynamic";
 
 export default async function StoresPage() {
-  const result = await fetchStores();
-  const error = result.error;
-  const stores = result.data ?? [];
+  const [storesResult, eventResult] = await Promise.all([
+    fetchStores(),
+    fetchActiveDisasterEvent(),
+  ]);
+
+  const error = storesResult.error;
+  const stores = storesResult.data ?? [];
+  const event = eventResult.data;
+
+  const reportsResult = event
+    ? await fetchReportsByEventId(event.id)
+    : { data: [], error: null };
+
+  const reports = reportsResult.data ?? [];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -30,6 +44,12 @@ export default async function StoresPage() {
                   placeholder="店舗名で検索..."
                   className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-gray-400"
                 />
+                <Link
+                  href="/admin/stores/new"
+                  className="bg-blue-600 text-white text-sm font-bold px-4 py-1.5 rounded-lg hover:bg-blue-700 whitespace-nowrap"
+                >
+                  + 新規店舗登録
+                </Link>
               </div>
             </div>
 
@@ -39,7 +59,7 @@ export default async function StoresPage() {
                   店舗データがありません。Supabase の stores テーブルにデータを登録してください。
                 </div>
               ) : (
-                <StoreTable stores={stores} />
+                <StoreTable stores={stores} reports={reports} />
               )}
             </div>
           </>
